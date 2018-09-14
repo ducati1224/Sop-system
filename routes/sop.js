@@ -9,10 +9,10 @@ const db = require('../config/config');
 const multer = require('multer');
 const storage = multer.diskStorage({
     destination: function(req, file, cb){
-        cb(null, './upload');
+        cb(null, '../sop_gen_client/public/uploads');
     },
     filename: function (req, file, cb) {
-        cb(null, file.originalname + '-' + Date.now())
+        cb(null, file.originalname)
     }
 })
 const upload = multer({
@@ -20,13 +20,15 @@ const upload = multer({
 })
 
 // sop Routes
-router.get('/', function(req, res){
+
+// Get sop list
+router.get('/list', function(req, res){
     sql.connect(db, function(err){
         if (err) {
             console.log(err)
         }
         const request = new sql.Request();
-        request.query('select * from deviceSop', function(err, result){
+        request.query('select alarmId,description from alarmSop ', function(err, result){
             if (err) {
                 console.log(err)
                 res.send(err)
@@ -37,20 +39,50 @@ router.get('/', function(req, res){
             if (flag) {
                 console.log('not null')
             }
-            res.json(result);
+            res.json(result.recordset);
         });
     })
 })
 
+// Get sop by id
+router.get('/:alarmId', function (req, res) {
+    sql.connect(db, function (err) {
+        if (err) {
+            console.log(err)
+        }
+        const request = new sql.Request();
+        request.input('alarmId', sql.NVarChar, req.params.alarmId)
+               .query('select * from alarmSop where alarmId=@alarmId', function (err, result) {
+                    if (err) {
+                        console.log(err)
+                        res.send(err)
+                    }
+                    sql.close();
+                    let flag = result.recordset.length;
+                    if (flag) {
+                        res.json(result.recordset);
+                    } else {
+                        res.json({
+                            message: 'Data not found'
+                        })
+                    }
+                    
+                });
+    })
+})
+
+// Create new sop
 router.post('/', function(req, res){
     sql.connect(db, function(err){
         if (err) {
             console.log(err)
         }
         const request = new sql.Request();
-        request.input('deviceId', sql.NVarChar, req.body.id)
+        request.input('alarmId', sql.NVarChar, req.body.alarmId)
                .input('description', sql.NVarChar, req.body.description)
-               .query('insert into deviceSop (deviceId, description) values (@deviceId, @description)', function(err, result){
+               .input('detail', sql.NVarChar, req.body.detail)
+               .input('date', sql.BigInt, Date.now())
+               .query('insert into alarmSop (alarmId, description, detail, date) values (@alarmId, @description, @detail, @date)', function(err, result){
                    if (err) {
                        console.log(err)
                        res.send(err)
@@ -61,14 +93,15 @@ router.post('/', function(req, res){
     })
 })
 
-router.delete('/:id', function(req, res){
+// Delete sop by id
+router.delete('/:alarmId', function(req, res){
     sql.connect(db, function(err){
         if (err) {
             console.log(err);
         }
         const request = new sql.Request();
-        request.input('id', sql.NVarChar, req.params.id)
-               .query('delete from deviceSop where deviceId=@id', function(err, result){
+        request.input('alarmId', sql.NVarChar, req.params.alarmId)
+               .query('delete from alarmSop where alarmId=@alarmId', function(err, result){
                    if (err) {
                        console.log(err);
                        res.send(err);
@@ -79,21 +112,35 @@ router.delete('/:id', function(req, res){
     })
 })
 
-router.post('/test', upload.single('file'), function(req, res){
-    console.log('enter upload route');
+// Upload file and store by id
+router.post('/:alarmId/upload', upload.array('file'), function(req, res){
+    // Handle uploaded file path
+    var files = {
+        dest: []
+    }
+    for (var i = 0; i < req.files.length; i++) {
+        let path = req.files[i].path.slice(25);
+        files.dest.push(path);
+    }
+    var paths = JSON.stringify(files);
+    
+    // Write path data into sql
     sql.connect(db, function (err) {
         if (err) {
             console.log(err)
         }
         const request = new sql.Request();
-        request.query('select * from deviceSop', function (err, result) {
+        request.input('alarmId', sql.NVarChar, req.params.alarmId)
+               .input('date', sql.BigInt, Date.now())
+               .input('files', sql.NVarChar, paths)
+               .query('update alarmSop set files=@files, date=@date where alarmId=@alarmId', function (err, result) {
             if (err) {
                 console.log(err)
                 res.send(err)
             }
             sql.close();
             console.log('data send')
-            res.json(result.recordset);
+            res.send('result.recordset');
         });
     })
 })
