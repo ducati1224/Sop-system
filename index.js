@@ -1,8 +1,11 @@
+require("dotenv").config();
 const express = require('express');
 const path = require('path');
 const bodyParser = require('body-parser');
 const app = express();
+const errorHandler = require("./handlers/error");
 const sopRoutes = require('./routes/sop');
+const userRoutes = require("./routes/auth");
 
 // Upload setting
 app.use(bodyParser.json());
@@ -15,7 +18,18 @@ app.use(function (req, res, next) {
 });
 
 // Routes
-app.use('/sop', sopRoutes)
+app.use('/sop', sopRoutes);
+app.use('/user', userRoutes);
+
+// Error handling
+app.use(function (req, res, next) {
+    let err = new Error("Not Found");
+    console.log(err.message, err.name);
+    err.status = 404;
+    next(err);
+});
+
+app.use(errorHandler);
 
 app.listen(3001, function(){
     console.log("Listening on port 3001")
