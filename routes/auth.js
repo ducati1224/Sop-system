@@ -54,10 +54,7 @@ router.post("/signin", async function(req, res, next) {
         {
           username: result.recordset[0].username
         },
-        process.env.SECRET_KEY,
-        {
-          expiresIn: 60 * 60
-        }
+        process.env.SECRET_KEY
       );
       return res.status(200).json({
         username: result.recordset[0].username,
@@ -67,7 +64,7 @@ router.post("/signin", async function(req, res, next) {
       return next({ status: 400, message: "Invalid Username/Password." });
     }
   } catch (err) {
-    return next(err);
+    return next({ status: 400, message: "Invalid Username/Password." });
   }
 });
 

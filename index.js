@@ -3,9 +3,12 @@ const express = require('express');
 const path = require('path');
 const bodyParser = require('body-parser');
 const app = express();
+const cors = require('cors');
 const errorHandler = require("./handlers/error");
 const sopRoutes = require('./routes/sop');
 const userRoutes = require("./routes/auth");
+
+app.use(cors());
 
 // Upload setting
 app.use(bodyParser.json());

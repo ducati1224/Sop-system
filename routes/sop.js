@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const { loginRequired } = require('../middleware/auth')
 
 // MSSQL
 const sql = require("mssql");
@@ -76,7 +77,7 @@ router.get("/:alarmId", function(req, res) {
 });
 
 // Create new sop
-router.post("/", upload.array("file"), function(req, res) {
+router.post("/", loginRequired, upload.array("file"), function(req, res) {
     var files = { dest: [] };
     if (req.files.length) {
         for (var i = 0; i < req.files.length; i++) {
@@ -117,7 +118,7 @@ router.post("/", upload.array("file"), function(req, res) {
 });
 
 // Edit sop by id
-router.put("/:alarmId", upload.array("file"), function(req, res) {
+router.put("/:alarmId", loginRequired, upload.array("file"), function(req, res) {
     var files = { dest: [] };
     if (req.files.length) {
         for (var i = 0; i < req.files.length; i++) {
@@ -176,71 +177,74 @@ router.put("/:alarmId", upload.array("file"), function(req, res) {
 });
 
 // Delete sop by id
-router.delete("/:alarmId", function(req, res) {
-    sql.connect(
-        db,
-        function(err) {
-            if (err) {
-                console.log(err);
-            }
-            const request = new sql.Request();
-            request
-                .input("alarmId", sql.NVarChar, req.params.alarmId)
-                .query("delete from alarmSop where alarmId=@alarmId", function(
-                    err,
-                    result
-                ) {
-                    if (err) {
-                        sql.close();
-                        console.log(err);
-                        res.json(err);
-                    } else {
-                        sql.close();
-                        res.json(result.recordset);
-                    }
-                });
-        }
-    );
+router.delete("/:alarmId", loginRequired, function(req, res) {
+  sql.connect(
+    db,
+    function(err) {
+      if (err) {
+        console.log(err);
+      }
+      const request = new sql.Request();
+      request
+        .input("alarmId", sql.NVarChar, req.params.alarmId)
+        .query("delete from alarmSop where alarmId=@alarmId", function(
+          err,
+          result
+        ) {
+          if (err) {
+            sql.close();
+            console.log(err);
+            res.json(err);
+          } else {
+            sql.close();
+            res.json(result.recordset);
+          }
+        });
+    }
+  );
 });
 
 // Upload file and store by id
-router.post("/:alarmId/upload", upload.array("file"), function(req, res) {
-    // Handle uploaded file path
-    var files = {
-        dest: []
-    };
-    for (var i = 0; i < req.files.length; i++) {
-        let path = req.files[i].path.slice(25);
-        files.dest.push(path);
-    }
-    var paths = JSON.stringify(files);
+router.post("/:alarmId/upload", loginRequired, upload.array("file"), function(
+  req,
+  res
+) {
+  // Handle uploaded file path
+  var files = {
+    dest: []
+  };
+  for (var i = 0; i < req.files.length; i++) {
+    let path = req.files[i].path.slice(25);
+    files.dest.push(path);
+  }
+  var paths = JSON.stringify(files);
 
-    // Write path data into sql
-    sql.connect(
-        db,
-        function(err) {
+  // Write path data into sql
+  sql.connect(
+    db,
+    function(err) {
+      if (err) {
+        console.log(err);
+      }
+      const request = new sql.Request();
+      request
+        .input("alarmId", sql.NVarChar, req.params.alarmId)
+        .input("date", sql.BigInt, Date.now())
+        .input("files", sql.NVarChar, paths)
+        .query(
+          "update alarmSop set files=@files, date=@date where alarmId=@alarmId",
+          function(err, result) {
             if (err) {
-                console.log(err);
+              console.log(err);
+              res.send(err);
             }
-            const request = new sql.Request();
-            request
-                .input("alarmId", sql.NVarChar, req.params.alarmId)
-                .input("date", sql.BigInt, Date.now())
-                .input("files", sql.NVarChar, paths)
-                .query(
-                    "update alarmSop set files=@files, date=@date where alarmId=@alarmId",
-                    function(err, result) {
-                        if (err) {
-                            console.log(err);
-                            res.send(err);
-                        }
-                        sql.close();
-                        console.log("data send");
-                        res.send("result.recordset");
-                    }
-                );
-        }
-    );
+            sql.close();
+            console.log("data send");
+            res.send("result.recordset");
+          }
+        );
+    }
+  );
 });
 
 module.exports = router;
