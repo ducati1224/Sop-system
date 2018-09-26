@@ -61,10 +61,10 @@ router.post("/signin", async function(req, res, next) {
         token
       });
     } else {
-      return next({ status: 400, message: "Invalid Username/Password." });
+      return next({ status: 400, message: "帳號 / 密碼 錯誤" });
     }
   } catch (err) {
-    return next({ status: 400, message: "Invalid Username/Password." });
+    return next({ status: 400, message: "帳號 / 密碼 錯誤" });
   }
 });
 
