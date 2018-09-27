@@ -5,11 +5,13 @@ const bodyParser = require('body-parser');
 const app = express();
 const cors = require('cors');
 const errorHandler = require("./handlers/error");
+const history = require("connect-history-api-fallback");
 const sopRoutes = require('./routes/sop');
 const userRoutes = require("./routes/auth");
 
 app.use(cors());
-
+app.use(history());
+app.use(express.static(path.join(__dirname, "./dist")));
 // Upload setting
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));

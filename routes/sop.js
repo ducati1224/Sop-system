@@ -10,7 +10,7 @@ const db = require("../config/config");
 const multer = require("multer");
 const storage = multer.diskStorage({
   destination: function(req, file, cb) {
-    cb(null, "../sop_gen_client/public/uploads");
+    cb(null, "./dist/uploads");
   },
   filename: function(req, file, cb) {
     cb(null, file.originalname);
@@ -93,7 +93,9 @@ router.post("/", loginRequired, upload.array("file"), function(req, res, next) {
   var files = { dest: [] };
   if (req.files.length) {
     for (var i = 0; i < req.files.length; i++) {
-      let path = req.files[i].path.slice(25);
+      // console.log(req.files[i].path)
+      let path = req.files[i].path.slice(5);
+      // console.log(path)
       files.dest.push(path);
     }
     var paths = JSON.stringify(files);
@@ -145,7 +147,9 @@ router.put("/:alarmId", loginRequired, upload.array("file"), function(
   var files = { dest: [] };
   if (req.files.length) {
     for (var i = 0; i < req.files.length; i++) {
-      let path = req.files[i].path.slice(25);
+      // console.log(req.files[i].path)
+      let path = req.files[i].path.slice(5);
+      // console.log(path)
       files.dest.push(path);
     }
     var paths = JSON.stringify(files);
