@@ -48,8 +48,8 @@ self.__precacheManifest = [
     "url": "/img/fa-brands-400.b5472631.svg"
   },
   {
-    "revision": "bd2e229e02d4104552f0",
-    "url": "/js/app.ce724532.js"
+    "revision": "748a720f5d0248ee5f88",
+    "url": "/js/app.72a10982.js"
   },
   {
     "revision": "da312e1d7d452fdc39c1",
@@ -92,11 +92,11 @@ self.__precacheManifest = [
     "url": "/img/fa-solid-900.38508b2e.svg"
   },
   {
-    "revision": "f15888c31fccfc44483613635a3b08d2",
+    "revision": "ca85afe3a974fe14d2d95b614fa1ecba",
     "url": "/index.html"
   },
   {
-    "revision": "bd2e229e02d4104552f0",
-    "url": "/css/app.b6d29f09.css"
+    "revision": "748a720f5d0248ee5f88",
+    "url": "/css/app.825ae34f.css"
   }
 ];
